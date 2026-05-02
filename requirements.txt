@@ -3,3 +3,5 @@ requests
 beautifulsoup4
 google-genai
 plotly
+gspread
+google-auth
