@@ -13,6 +13,9 @@ from bs4 import BeautifulSoup
 from google import genai
 import plotly.graph_objects as go
 import re
+import gspread
+from google.oauth2.service_account import Credentials
+import json
 
 # --- 1. 페이지 설정 및 디자인 ---
 st.set_page_config(page_title="AI 물가 파수꾼", layout="wide")
