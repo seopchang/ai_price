@@ -151,3 +151,42 @@ if st.button("🚀 뉴스 수집 및 물가 위험도 분석 시작", use_contai
                 
             except Exception as e:
                 st.error(f"분석 중 에러가 발생했습니다. API 키가 정확한지, 한도를 초과하지 않았는지 확인해주세요. (상세 에러: {e})")
+
+
+# --- [6] AI 자가 검증 (피드백 루프) 시스템 ---
+st.markdown("---")
+st.subheader("🔍 AI 예측 자가 검증 (Feedback Loop)")
+st.caption("과거의 예측이 맞았는지 최신 뉴스와 비교하여 스스로 평가합니다.")
+
+if st.button("과거 예측 결과 검증하기", use_container_width=True):
+    if not user_api_key:
+        st.warning("⚠️ 왼쪽 사이드바에 Gemini API 키를 먼저 입력해주세요!")
+    else:
+        with st.spinner("🕵️ 과거 데이터와 현재 뉴스를 비교하여 예측 정확도를 채점 중입니다..."):
+            try:
+                # 최신 뉴스 다시 불러오기
+                current_news = get_news_headlines()
+                
+                # 제미나이 모델 세팅
+                genai.configure(api_key=user_api_key)
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                
+                verify_prompt = f"""
+                당신은 경제 예측의 정확성을 평가하는 AI 감사관입니다.
+                아래의 실시간 경제 뉴스를 바탕으로, 우리의 과거 물가 위험도 예측이 실제 시장 상황과 얼마나 잘 맞아떨어졌는지 냉정하게 평가해주세요.
+                
+                [현재 최신 경제 뉴스]
+                {current_news}
+                
+                [요청 사항]
+                1. 현재 시장 상황과 뉴스를 바탕으로 예측 정확도 평가 (잘된 점 / 아쉬운 점)
+                2. 예측 당시에는 없었지만 새롭게 등장한 외부 변수(돌발 상황)가 있다면 설명
+                """
+                
+                verify_result = model.generate_content(verify_prompt)
+                
+                st.info("💡 **AI 감사관의 검증 결과 리포트**")
+                st.write(verify_result.text)
+                
+            except Exception as e:
+                st.error(f"검증 중 에러가 발생했습니다. (상세 에러: {e})")
