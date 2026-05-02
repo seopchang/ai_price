@@ -1,7 +1,5 @@
 streamlit
-requests
+google-generativeai
 beautifulsoup4
-google-genai
 plotly
 gspread
-google-auth
