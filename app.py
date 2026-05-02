@@ -156,7 +156,7 @@ if st.button("🚀 뉴스 수집 및 물가 위험도 분석 시작", use_contai
 # --- [6] AI 자가 검증 (피드백 루프) 시스템 ---
 st.markdown("---")
 st.subheader("🔍 AI 예측 자가 검증 (Feedback Loop)")
-st.caption("과거의 예측이 맞았는지 최신 뉴스와 비교하여 스스로 평가합니다.")
+st.caption("과거의 예측이 맞았는지 최신 뉴스와 비교하여 스스로 평가하고 DB를 업데이트합니다.")
 
 if st.button("과거 예측 결과 검증하기", use_container_width=True):
     if not user_api_key:
@@ -164,10 +164,10 @@ if st.button("과거 예측 결과 검증하기", use_container_width=True):
     else:
         with st.spinner("🕵️ 과거 데이터와 현재 뉴스를 비교하여 예측 정확도를 채점 중입니다..."):
             try:
-                # 최신 뉴스 다시 불러오기
+                # 1. 최신 뉴스 다시 불러오기
                 current_news = get_news_headlines()
                 
-                # 제미나이 모델 세팅
+                # 2. 제미나이 모델 세팅 및 검증 리포트 생성
                 genai.configure(api_key=user_api_key)
                 model = genai.GenerativeModel('gemini-2.5-flash')
                 
@@ -187,6 +187,22 @@ if st.button("과거 예측 결과 검증하기", use_container_width=True):
                 
                 st.info("💡 **AI 감사관의 검증 결과 리포트**")
                 st.write(verify_result.text)
+
+                # --- 3. 구글 시트 연동: 마지막 줄 D열에 내용 덮어쓰기 ---
+                client = init_connection()
+                doc = client.open("AI_Price_DB")
+                sheet = doc.sheet1
                 
+                # 데이터가 적혀있는 가장 마지막 줄의 번호 찾기
+                last_row = len(sheet.get_all_values())
+                
+                # 첫 번째 줄(헤더)이 아니라 실제 데이터가 있을 때만 업데이트
+                if last_row > 1:
+                    # update_cell(행 번호, 열 번호, 넣을 데이터) -> 4는 D열을 의미함!
+                    sheet.update_cell(last_row, 4, verify_result.text)
+                    st.success("💾 검증 결과가 구글 시트의 마지막 분석 기록에 성공적으로 업데이트되었습니다!")
+                else:
+                    st.warning("아직 분석된 데이터가 없어서 검증 결과를 기록할 수 없어요. [분석 시작]부터 먼저 실행해주세요!")
+                    
             except Exception as e:
-                st.error(f"검증 중 에러가 발생했습니다. (상세 에러: {e})")
+                st.error(f"검증 및 저장 중 에러가 발생했습니다. (상세 에러: {e})")
