@@ -57,7 +57,7 @@ def get_news_headlines():
 # --- [3] 생성형 AI (XAI) 분석 및 프롬프트 엔지니어링 ---
 def analyze_with_gemini(api_key, news_data):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash') 
+    model = genai.GenerativeModel('gemini-2.5-flash') 
     
     prompt = f"""
     당신은 거시경제 애널리스트입니다. 아래의 실시간 경제 뉴스 헤드라인들을 분석하여,
